@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="大アルカナで気軽に楽しむ、恋愛・仕事・人間関係のタロット占いです。">
+    <title>月灯りのタロット</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="js/tarot-data.js" defer></script>
+    <script src="js/tarot-engine.js" defer></script>
+    <script src="js/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">本文へ移動</a>
+
+    <div class="page-glow page-glow-one" aria-hidden="true"></div>
+    <div class="page-glow page-glow-two" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <a class="brand" href="index.html" aria-label="月灯りのタロット トップへ">
+        <span class="brand-mark" aria-hidden="true">☾</span>
+        <span>月灯りのタロット</span>
+      </a>
+      <p class="header-note">静かな夜の、心を映す一枚</p>
+    </header>
+
+    <main id="main-content" class="app-shell">
+      <section id="selection-panel" class="selection-panel" aria-labelledby="main-title">
+        <div class="hero-copy">
+          <p class="eyebrow"><span aria-hidden="true">✦</span> TAROT READING</p>
+          <h1 id="main-title" tabindex="-1">今のあなたに、<br>月灯りのメッセージを。</h1>
+          <p class="lead">
+            気になるテーマとカードの引き方を選んでください。<br class="desktop-only">
+            答えを決めつけず、心を見つめる小さなきっかけを届けます。
+          </p>
+        </div>
+
+        <form id="reading-form" class="reading-form" novalidate>
+          <fieldset>
+            <legend><span>01</span> 占いたいテーマ</legend>
+            <div class="choice-grid theme-grid">
+              <label class="choice">
+                <input type="radio" name="theme" value="love" checked>
+                <span class="choice-body">
+                  <span class="choice-symbol" aria-hidden="true">♡</span>
+                  <span class="choice-text">
+                    <strong>恋愛</strong>
+                    <small>想い・距離・これから</small>
+                  </span>
+                </span>
+              </label>
+              <label class="choice">
+                <input type="radio" name="theme" value="work">
+                <span class="choice-body">
+                  <span class="choice-symbol" aria-hidden="true">◇</span>
+                  <span class="choice-text">
+                    <strong>仕事</strong>
+                    <small>役割・挑戦・進む道</small>
+                  </span>
+                </span>
+              </label>
+              <label class="choice">
+                <input type="radio" name="theme" value="relationships">
+                <span class="choice-body">
+                  <span class="choice-symbol" aria-hidden="true">◎</span>
+                  <span class="choice-text">
+                    <strong>人間関係</strong>
+                    <small>つながり・境界線・対話</small>
+                  </span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend><span>02</span> カードの引き方</legend>
+            <div class="choice-grid spread-grid">
+              <label class="choice spread-choice">
+                <input type="radio" name="spread" value="one" checked>
+                <span class="choice-body">
+                  <span class="mini-cards one-card-icon" aria-hidden="true"><i></i></span>
+                  <span class="choice-text">
+                    <strong>1枚引き</strong>
+                    <small>今のあなたへのメッセージ</small>
+                  </span>
+                </span>
+              </label>
+              <label class="choice spread-choice">
+                <input type="radio" name="spread" value="three">
+                <span class="choice-body">
+                  <span class="mini-cards three-card-icon" aria-hidden="true"><i></i><i></i><i></i></span>
+                  <span class="choice-text">
+                    <strong>3枚引き</strong>
+                    <small>過去・現在・未来を見つめる</small>
+                  </span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+
+          <button class="primary-button draw-button" type="submit">
+            <span aria-hidden="true">✦</span>
+            カードを引く
+          </button>
+          <p class="form-note">結果は保存・送信されません。外部APIも使用していません。</p>
+          <p id="form-error" class="error-message" role="alert" hidden></p>
+        </form>
+      </section>
+
+      <section id="result-panel" class="result-panel" aria-labelledby="result-title" hidden>
+        <div class="result-heading">
+          <p class="eyebrow"><span aria-hidden="true">✦</span> YOUR CARDS</p>
+          <h1 id="result-title" tabindex="-1">カードが選ばれました</h1>
+          <p id="result-context" class="result-context"></p>
+          <p id="reveal-guide" class="reveal-guide">カードをタップして、1枚ずつめくってください。</p>
+        </div>
+
+        <div id="cards-container" class="cards-container" aria-live="polite"></div>
+
+        <div class="reveal-controls">
+          <button id="reveal-all-button" class="secondary-button" type="button">すべてめくる</button>
+        </div>
+
+        <section id="closing-message" class="closing-message" aria-labelledby="closing-title" hidden>
+          <span class="closing-moon" aria-hidden="true">☾</span>
+          <div>
+            <p class="eyebrow">A NOTE FOR YOU</p>
+            <h2 id="closing-title">今日の小さな一歩</h2>
+            <p id="closing-text"></p>
+          </div>
+        </section>
+
+        <div class="result-actions">
+          <button id="draw-again-button" class="primary-button" type="button">
+            <span aria-hidden="true">↻</span>
+            もう一度引く
+          </button>
+          <button id="change-options-button" class="text-button" type="button">テーマ・引き方を選び直す</button>
+        </div>
+      </section>
+
+      <section class="about-panel" aria-labelledby="about-title">
+        <p class="eyebrow"><span aria-hidden="true">☾</span> ABOUT</p>
+        <h2 id="about-title">カードとの時間を楽しむために</h2>
+        <div class="about-grid">
+          <p><strong>直感で受け取る</strong><span>気になった言葉を、今の気持ちに照らしてみましょう。</span></p>
+          <p><strong>答えを急がない</strong><span>占いは正解ではなく、考えるきっかけのひとつです。</span></p>
+          <p><strong>自分を大切にする</strong><span>不安になる結果は抱え込まず、無理のない選択を優先してください。</span></p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>この占いは娯楽と気持ちの振り返りを目的としています。</p>
+      <p>医療・法律・投資・生命や安全に関わる判断には使用せず、必要に応じて専門家へご相談ください。</p>
+      <p class="copyright">© 2026 月灯りのタロット</p>
+    </footer>
+
+    <template id="card-template">
+      <article class="draw-slot">
+        <p class="position-label"></p>
+        <button class="tarot-card" type="button" aria-expanded="false">
+          <span class="card-inner">
+            <span class="card-face card-back">
+              <span class="screen-reader-text">カードをめくる</span>
+            </span>
+            <span class="card-face card-front">
+              <span class="card-art" aria-hidden="true">
+                <img class="card-image" src="" alt="" hidden>
+                <span class="card-symbol"></span>
+              </span>
+              <span class="card-meta">
+                <span class="card-number"></span>
+                <strong class="card-name"></strong>
+                <span class="card-english"></span>
+                <span class="orientation-badge"></span>
+              </span>
+            </span>
+          </span>
+        </button>
+        <section class="card-reading" hidden>
+          <p class="keywords"></p>
+          <h2 class="reading-title"></h2>
+          <p class="general-reading"></p>
+          <div class="theme-message">
+            <span class="theme-message-label"></span>
+            <p></p>
+          </div>
+          <div class="advice-message">
+            <span>小さなヒント</span>
+            <p></p>
+          </div>
+        </section>
+      </article>
+    </template>
+  </body>
+</html>

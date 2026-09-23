@@ -1,0 +1,10 @@
+# Local source image retained for backup; the web app uses the WebP version.
+assets/cards/00-fool.png
+
+# Never commit local environment files or OS-generated metadata.
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+
