@@ -3,7 +3,14 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="大アルカナで気軽に楽しむ、恋愛・仕事・人間関係のタロット占いです。">
+    <meta name="description" content="今日の1枚や、恋愛・仕事・人間関係の1枚引き・3枚引きを無料で楽しめるタロット占いです。登録不要で、結果は保存されません。">
+    <meta property="og:title" content="月灯りのタロット">
+    <meta property="og:description" content="静かな夜に心を見つめる、無料・登録不要のタロット占い。今日の1枚も楽しめます。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rio-tatibana.github.io/tarot-web-mvp/">
+    <meta property="og:image" content="https://rio-tatibana.github.io/tarot-web-mvp/assets/cards/card-back.webp">
+    <meta name="twitter:card" content="summary">
+    <link rel="canonical" href="https://rio-tatibana.github.io/tarot-web-mvp/">
     <title>月灯りのタロット</title>
     <link rel="stylesheet" href="styles.css">
     <script src="js/tarot-data.js" defer></script>
@@ -34,6 +41,20 @@
             答えを決めつけず、心を見つめる小さなきっかけを届けます。
           </p>
         </div>
+
+        <section class="daily-reading-entry" aria-labelledby="daily-reading-title">
+          <span class="daily-moon" aria-hidden="true">☾</span>
+          <div class="daily-reading-copy">
+            <p class="eyebrow">DAILY CARD</p>
+            <h2 id="daily-reading-title">今日の1枚</h2>
+            <p><time id="daily-date"></time>のあなたへ。同じ日は、同じカードが静かに待っています。</p>
+          </div>
+          <button id="daily-reading-button" class="secondary-button daily-reading-button" type="button">
+            今日のカードをめくる
+          </button>
+        </section>
+
+        <div class="reading-divider" aria-hidden="true"><span>悩みに合わせて占う</span></div>
 
         <form id="reading-form" class="reading-form" novalidate>
           <fieldset>
@@ -131,6 +152,16 @@
         </section>
 
         <div class="result-actions">
+          <button id="share-result-button" class="secondary-button" type="button" hidden>
+            <span aria-hidden="true">↗</span>
+            結果を共有
+          </button>
+          <p id="share-status" class="share-status" role="status" aria-live="polite" hidden></p>
+          <div id="share-fallback" class="share-fallback" hidden>
+            <label for="share-fallback-text">共有する文章</label>
+            <textarea id="share-fallback-text" rows="7" readonly></textarea>
+            <p>文章を選択し、長押しまたは右クリックでコピーしてください。</p>
+          </div>
           <button id="draw-again-button" class="primary-button" type="button">
             <span aria-hidden="true">↻</span>
             もう一度引く

@@ -135,6 +135,37 @@
       });
   }
 
+  function hashString(value) {
+    let hash = 2166136261;
+
+    for (let index = 0; index < value.length; index += 1) {
+      hash ^= value.charCodeAt(index);
+      hash = Math.imul(hash, 16777619);
+    }
+
+    return hash >>> 0;
+  }
+
+  function drawDailyCard(dateKey, cards = global.TAROT_CARDS) {
+    if (typeof dateKey !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) {
+      throw new TypeError("dateKeyはYYYY-MM-DD形式で指定してください。");
+    }
+
+    if (!Array.isArray(cards) || cards.length === 0) {
+      throw new RangeError("カードがありません。");
+    }
+
+    const card = cards[hashString(`card:${dateKey}`) % cards.length];
+    const orientation = hashString(`orientation:${dateKey}`) % 2 === 0 ? "upright" : "reversed";
+
+    return {
+      card,
+      orientation,
+      orientationLabel: orientation === "upright" ? "正位置" : "逆位置",
+      meaning: card[orientation]
+    };
+  }
+
   function getThemeLabel(theme) {
     return THEME_LABELS[theme] || "選択したテーマ";
   }
@@ -150,6 +181,7 @@
     shuffle,
     validateCards,
     drawCards,
+    drawDailyCard,
     getThemeLabel,
     getSpread
   });

@@ -20,15 +20,28 @@ const htmlIds = Array.from(html.matchAll(/\sid="([^"]+)"/g), (match) => match[1]
 assert.equal(new Set(htmlIds).size, htmlIds.length, "HTML内のidが重複しています。");
 
 const localReferences = Array.from(html.matchAll(/\s(?:src|href)="([^"]+)"/g), (match) => match[1])
-  .filter((reference) => !reference.startsWith("#"));
+  .filter((reference) => !reference.startsWith("#") && !/^https?:/i.test(reference));
 
 localReferences.forEach((reference) => {
-  assert.equal(/^https?:/i.test(reference), false, `外部参照が含まれています: ${reference}`);
   assert.equal(fs.existsSync(path.join(projectRoot, reference)), true, `参照ファイルがありません: ${reference}`);
 });
 
+const externalSources = Array.from(html.matchAll(/\ssrc="(https?:[^"]+)"/gi), (match) => match[1]);
+assert.equal(externalSources.length, 0, `外部ファイルを読み込んでいます: ${externalSources.join(", ")}`);
+
 const validation = engine.validateCards(cards);
 assert.equal(validation.valid, true, validation.errors.join("\n"));
+
+const dailyDraw = engine.drawDailyCard("2026-09-23", cards);
+const repeatedDailyDraw = engine.drawDailyCard("2026-09-23", cards);
+assert.equal(dailyDraw.card.id, repeatedDailyDraw.card.id, "同じ日のカードが一致しません。");
+assert.equal(dailyDraw.orientation, repeatedDailyDraw.orientation, "同じ日のカードの向きが一致しません。");
+assert.ok(["upright", "reversed"].includes(dailyDraw.orientation), "今日の1枚の向きが不正です。");
+assert.throws(() => engine.drawDailyCard("2026/09/23", cards), TypeError, "不正な日付形式を拒否できていません。");
+
+assert.ok(html.includes('id="daily-reading-button"'), "今日の1枚ボタンがありません。");
+assert.ok(html.includes('id="share-result-button"'), "結果共有ボタンがありません。");
+assert.ok(html.includes('id="share-fallback-text"'), "手動共有欄がありません。");
 
 const originalOrder = cards.map((card) => card.id).join(",");
 const seenOrientations = new Set();

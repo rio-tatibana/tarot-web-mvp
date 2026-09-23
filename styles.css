@@ -208,6 +208,80 @@ h1 {
   font-size: 0.96rem;
 }
 
+.daily-reading-entry {
+  display: grid;
+  max-width: 880px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: center;
+  margin: 0 auto 32px;
+  padding: 32px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-large);
+  background:
+    linear-gradient(120deg, color-mix(in srgb, var(--accent) 9%, transparent), transparent 55%),
+    var(--surface);
+  box-shadow: 0 16px 48px color-mix(in srgb, var(--bg-deep) 40%, transparent);
+  backdrop-filter: blur(18px);
+}
+
+.daily-moon {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--accent-bright);
+  font-family: var(--serif);
+  font-size: 2.25rem;
+}
+
+.daily-reading-copy .eyebrow {
+  margin-bottom: 4px;
+}
+
+.daily-reading-copy h2 {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 1.55rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+
+.daily-reading-copy p:last-child {
+  margin: 8px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+
+.daily-reading-button {
+  min-width: 224px;
+}
+
+.reading-divider {
+  display: flex;
+  max-width: 880px;
+  gap: 16px;
+  align-items: center;
+  margin: 32px auto;
+  color: var(--ink-faint);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+}
+
+.reading-divider::before,
+.reading-divider::after {
+  height: 1px;
+  flex: 1;
+  background: var(--line-soft);
+  content: "";
+}
+
+.reading-divider span {
+  white-space: nowrap;
+}
+
 .reading-form {
   max-width: 880px;
   margin: 0 auto;
@@ -780,6 +854,58 @@ legend span {
   padding: 0 28px;
 }
 
+.share-status {
+  margin: -8px 0 0;
+  color: var(--accent-bright);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.share-status.is-error {
+  color: var(--danger);
+}
+
+.share-fallback {
+  width: min(560px, 100%);
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-medium);
+  background: var(--surface);
+}
+
+.share-fallback label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--accent-bright);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.share-fallback textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-small);
+  background: var(--bg-deep);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.78rem;
+  line-height: 1.65;
+}
+
+.share-fallback textarea:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.share-fallback p {
+  margin: 8px 0 0;
+  color: var(--ink-faint);
+  font-size: 0.7rem;
+}
+
 .text-button {
   min-height: 40px;
   padding: 0 12px;
@@ -897,6 +1023,28 @@ legend span {
   .reading-form {
     padding: 24px 16px;
     border-radius: var(--radius-medium);
+  }
+
+  .daily-reading-entry {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 16px;
+    padding: 24px 16px;
+    border-radius: var(--radius-medium);
+  }
+
+  .daily-moon {
+    width: 48px;
+    height: 48px;
+    font-size: 1.7rem;
+  }
+
+  .daily-reading-button {
+    width: 100%;
+    grid-column: 1 / -1;
+  }
+
+  .reading-divider {
+    margin: 24px auto;
   }
 
   fieldset + fieldset {
