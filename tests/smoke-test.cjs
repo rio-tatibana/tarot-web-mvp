@@ -39,6 +39,42 @@ assert.equal(dailyDraw.orientation, repeatedDailyDraw.orientation, "同じ日の
 assert.ok(["upright", "reversed"].includes(dailyDraw.orientation), "今日の1枚の向きが不正です。");
 assert.throws(() => engine.drawDailyCard("2026/09/23", cards), TypeError, "不正な日付形式を拒否できていません。");
 
+const dailyShare = engine.parseShareCode(engine.createShareCode({
+  mode: "daily",
+  dailyDateKey: "2026-09-23"
+}), cards);
+assert.equal(dailyShare.dailyDateKey, "2026-09-23", "今日の1枚の共有日付を復元できません。");
+assert.equal(dailyShare.draws[0].card.id, dailyDraw.card.id, "今日の1枚の共有結果が一致しません。");
+assert.equal(dailyShare.draws[0].orientation, dailyDraw.orientation, "今日の1枚の向きが一致しません。");
+
+const shareDraws = engine.drawCards(3, cards);
+const regularShare = engine.parseShareCode(engine.createShareCode({
+  mode: "regular",
+  theme: "work",
+  spread: "three",
+  draws: shareDraws
+}), cards);
+assert.equal(regularShare.theme, "work", "共有テーマを復元できません。");
+assert.equal(regularShare.spread, "three", "共有の引き方を復元できません。");
+assert.deepEqual(
+  regularShare.draws.map((draw) => [draw.card.id, draw.orientation]),
+  shareDraws.map((draw) => [draw.card.id, draw.orientation]),
+  "共有した3枚の結果が一致しません。"
+);
+const oneShareDraw = engine.drawCards(1, cards);
+const oneShare = engine.parseShareCode(engine.createShareCode({
+  mode: "regular",
+  theme: "love",
+  spread: "one",
+  draws: oneShareDraw
+}), cards);
+assert.equal(oneShare.draws[0].card.id, oneShareDraw[0].card.id, "共有した1枚の結果が一致しません。");
+assert.equal(oneShare.draws[0].orientation, oneShareDraw[0].orientation, "共有した1枚の向きが一致しません。");
+assert.equal(engine.parseShareCode("1.d.2026-02-30", cards), null, "存在しない日付を拒否できていません。");
+assert.equal(engine.parseShareCode("1.r.work.three.fool~u,fool~r,star~u", cards), null, "重複カードを拒否できていません。");
+assert.equal(engine.parseShareCode("1.r.work.one.unknown~u", cards), null, "不明なカードを拒否できていません。");
+assert.equal(engine.parseShareCode("1.r.work.one.fool~x", cards), null, "不正な向きを拒否できていません。");
+
 assert.ok(html.includes('id="daily-reading-button"'), "今日の1枚ボタンがありません。");
 assert.ok(html.includes('id="share-result-button"'), "結果共有ボタンがありません。");
 assert.ok(html.includes('id="share-fallback-text"'), "手動共有欄がありません。");

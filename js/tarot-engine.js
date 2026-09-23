@@ -166,6 +166,96 @@
     };
   }
 
+  function isValidDateKey(dateKey) {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateKey);
+    if (!match) return false;
+
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+    const date = new Date(0);
+    date.setUTCFullYear(year, month - 1, day);
+    return year >= 1000
+      && date.getUTCFullYear() === year
+      && date.getUTCMonth() === month - 1
+      && date.getUTCDate() === day;
+  }
+
+  function createShareCode(reading) {
+    if (reading.mode === "daily") {
+      if (!isValidDateKey(reading.dailyDateKey)) {
+        throw new RangeError("共有する日付が正しくありません。");
+      }
+      return `1.d.${reading.dailyDateKey}`;
+    }
+
+    const spread = SPREADS[reading.spread];
+    if (reading.mode !== "regular" || !THEME_LABELS[reading.theme]
+      || !spread || !Array.isArray(reading.draws) || reading.draws.length !== spread.count) {
+      throw new RangeError("共有する占い結果が正しくありません。");
+    }
+
+    const cardCodes = reading.draws.map((draw) => {
+      if (!draw.card || !/^[a-z-]+$/.test(draw.card.id)
+        || !["upright", "reversed"].includes(draw.orientation)) {
+        throw new RangeError("共有するカードが正しくありません。");
+      }
+      return `${draw.card.id}~${draw.orientation === "upright" ? "u" : "r"}`;
+    });
+
+    return `1.r.${reading.theme}.${reading.spread}.${cardCodes.join(",")}`;
+  }
+
+  function parseShareCode(code, cards = global.TAROT_CARDS) {
+    if (typeof code !== "string" || code.length > 160 || !Array.isArray(cards)) {
+      return null;
+    }
+
+    const parts = code.split(".");
+    if (parts.length === 3 && parts[0] === "1" && parts[1] === "d") {
+      if (!isValidDateKey(parts[2])) return null;
+      return {
+        mode: "daily",
+        dailyDateKey: parts[2],
+        draws: [drawDailyCard(parts[2], cards)]
+      };
+    }
+
+    if (parts.length !== 5 || parts[0] !== "1" || parts[1] !== "r"
+      || !THEME_LABELS[parts[2]] || !SPREADS[parts[3]]) {
+      return null;
+    }
+
+    const cardCodes = parts[4].split(",");
+    if (cardCodes.length !== SPREADS[parts[3]].count) return null;
+
+    const cardById = new Map(cards.map((card) => [card.id, card]));
+    const seen = new Set();
+    const draws = [];
+
+    for (const cardCode of cardCodes) {
+      const match = /^([a-z-]+)~([ur])$/.exec(cardCode);
+      if (!match || seen.has(match[1]) || !cardById.has(match[1])) return null;
+
+      const card = cardById.get(match[1]);
+      const orientation = match[2] === "u" ? "upright" : "reversed";
+      seen.add(card.id);
+      draws.push({
+        card,
+        orientation,
+        orientationLabel: orientation === "upright" ? "正位置" : "逆位置",
+        meaning: card[orientation]
+      });
+    }
+
+    return {
+      mode: "regular",
+      theme: parts[2],
+      spread: parts[3],
+      draws
+    };
+  }
+
   function getThemeLabel(theme) {
     return THEME_LABELS[theme] || "選択したテーマ";
   }
@@ -182,6 +272,8 @@
     validateCards,
     drawCards,
     drawDailyCard,
+    createShareCode,
+    parseShareCode,
     getThemeLabel,
     getSpread
   });

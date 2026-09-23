@@ -9,6 +9,7 @@
     spread: "one",
     draws: [],
     revealed: new Set(),
+    positions: [],
     dailyDateKey: "",
     dailyDateLabel: ""
   };
@@ -62,6 +63,37 @@
     elements.shareResultButton.addEventListener("click", handleShare);
     elements.drawAgainButton.addEventListener("click", () => startReading(state.theme, state.spread));
     elements.changeOptionsButton.addEventListener("click", showOptions);
+
+    const sharedCode = new URLSearchParams(global.location.search).get("reading");
+    if (sharedCode !== null) {
+      restoreSharedReading(sharedCode);
+    }
+  }
+
+  function restoreSharedReading(code) {
+    const reading = global.TarotEngine.parseShareCode(code);
+    if (!reading) {
+      showFormError("共有リンクを読み込めませんでした。通常の占いをお試しください。");
+      return;
+    }
+
+    state.mode = reading.mode;
+    state.theme = reading.theme || null;
+    state.spread = reading.spread || "one";
+    state.draws = reading.draws;
+
+    if (reading.mode === "daily") {
+      const [year, month, day] = reading.dailyDateKey.split("-").map(Number);
+      const date = new Date(year, month - 1, day);
+      state.dailyDateKey = reading.dailyDateKey;
+      state.dailyDateLabel = getLocalDateInfo(date).label;
+    }
+
+    const spreadDefinition = reading.mode === "daily"
+      ? { label: "今日の1枚", count: 1, positions: ["今日のカード"] }
+      : global.TarotEngine.getSpread(reading.spread);
+    presentReading(spreadDefinition);
+    revealAllCards();
   }
 
   function handleSubmit(event) {
@@ -86,6 +118,7 @@
       state.theme = theme;
       state.spread = spread;
       state.draws = global.TarotEngine.drawCards(spreadDefinition.count);
+      clearSharedLink();
       presentReading(spreadDefinition);
     } catch (error) {
       console.error("カードの抽選に失敗しました:", error);
@@ -117,6 +150,7 @@
 
   function presentReading(spreadDefinition) {
     state.revealed = new Set();
+    state.positions = spreadDefinition.positions;
     hideFormError();
     renderReading(spreadDefinition);
     elements.selectionPanel.hidden = true;
@@ -128,7 +162,10 @@
   function renderReading(spreadDefinition) {
     elements.cardsContainer.replaceChildren();
     elements.cardsContainer.dataset.count = String(state.draws.length);
-    elements.resultTitle.textContent = state.mode === "daily" ? "今日の1枚が選ばれました" : "カードが選ばれました";
+    const isCurrentDaily = state.mode === "daily" && state.dailyDateKey === getLocalDateInfo().key;
+    elements.resultTitle.textContent = state.mode === "daily"
+      ? (isCurrentDaily ? "今日の1枚が選ばれました" : "この日の1枚が選ばれました")
+      : "カードが選ばれました";
     elements.resultContext.textContent = state.mode === "daily"
       ? `${state.dailyDateLabel} ／ 今日の1枚`
       : `${global.TarotEngine.getThemeLabel(state.theme)} ／ ${spreadDefinition.label}`;
@@ -200,7 +237,7 @@
     const article = elements.cardsContainer.querySelector(`[data-card-index="${index}"]`);
     const button = article.querySelector(".tarot-card");
     const reading = article.querySelector(".card-reading");
-    const position = global.TarotEngine.getSpread(state.spread).positions[index];
+    const position = state.positions[index];
     const draw = state.draws[index];
 
     state.revealed.add(index);
@@ -223,7 +260,9 @@
     let prefix;
 
     if (state.mode === "daily") {
-      prefix = `今日の「${finalDraw.card.name}」からのヒントです。`;
+      prefix = state.dailyDateKey === getLocalDateInfo().key
+        ? `今日の「${finalDraw.card.name}」からのヒントです。`
+        : `${state.dailyDateLabel}の「${finalDraw.card.name}」からのヒントです。`;
     } else {
       prefix = state.spread === "three"
         ? `未来に現れた「${finalDraw.card.name}」からのヒントです。`
@@ -239,11 +278,13 @@
 
   async function handleShare() {
     const shareText = buildShareText();
-    const copyValue = `${shareText}\n${SHARE_URL}`;
+    const shareUrl = new URL(SHARE_URL);
+    shareUrl.searchParams.set("reading", global.TarotEngine.createShareCode(state));
+    const copyValue = `${shareText}\n${shareUrl.href}`;
     const shareData = {
       title: "月灯りのタロット",
       text: shareText,
-      url: SHARE_URL
+      url: shareUrl.href
     };
 
     elements.shareStatus.hidden = true;
@@ -331,10 +372,19 @@
   }
 
   function showOptions() {
+    clearSharedLink();
     elements.resultPanel.hidden = true;
     elements.selectionPanel.hidden = false;
     scrollToPanel(elements.selectionPanel);
     document.querySelector("#main-title").focus({ preventScroll: true });
+  }
+
+  function clearSharedLink() {
+    const currentUrl = new URL(global.location.href);
+    if (currentUrl.searchParams.has("reading") && /^https?:$/.test(currentUrl.protocol)) {
+      currentUrl.searchParams.delete("reading");
+      global.history.replaceState(null, "", currentUrl.href);
+    }
   }
 
   function getLocalDateInfo(date = new Date()) {
