@@ -1,6 +1,8 @@
 (function (global) {
   "use strict";
 
+  const SHARE_URL = "https://rio-tatibana.github.io/tarot-web-mvp/";
+
   const state = {
     mode: "regular",
     theme: "love",
@@ -237,29 +239,34 @@
 
   async function handleShare() {
     const shareText = buildShareText();
-    const copyValue = `${shareText}\n${global.location.href}`;
+    const copyValue = `${shareText}\n${SHARE_URL}`;
     const shareData = {
       title: "月灯りのタロット",
       text: shareText,
-      url: global.location.href
+      url: SHARE_URL
     };
 
     elements.shareStatus.hidden = true;
 
-    try {
-      if (global.navigator && typeof global.navigator.share === "function") {
+    if (global.navigator && typeof global.navigator.share === "function") {
+      try {
         await global.navigator.share(shareData);
         showShareStatus("共有できました。");
-      } else {
-        await copyText(copyValue);
-        showShareStatus("結果をコピーしました。");
-      }
-    } catch (error) {
-      if (error && error.name === "AbortError") {
         return;
-      }
+      } catch (error) {
+        if (error && error.name === "AbortError") {
+          return;
+        }
 
-      console.error("結果を共有できませんでした:", error);
+        console.warn("端末の共有機能を利用できないため、コピーへ切り替えます。", error);
+      }
+    }
+
+    try {
+      await copyText(copyValue);
+      showShareStatus("結果と公開URLをコピーしました。SNSなどに貼り付けて共有できます。");
+    } catch (error) {
+      console.warn("自動コピーを利用できないため、手動コピー欄を表示します。", error);
       showManualShare(copyValue);
       showShareStatus("共有用の文章を表示しました。下の欄からコピーしてください。");
     }
