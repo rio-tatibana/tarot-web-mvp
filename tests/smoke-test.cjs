@@ -23,7 +23,8 @@ const localReferences = Array.from(html.matchAll(/\s(?:src|href)="([^"]+)"/g), (
   .filter((reference) => !reference.startsWith("#") && !/^https?:/i.test(reference));
 
 localReferences.forEach((reference) => {
-  assert.equal(fs.existsSync(path.join(projectRoot, reference)), true, `参照ファイルがありません: ${reference}`);
+  const pathname = reference.split(/[?#]/)[0];
+  assert.equal(fs.existsSync(path.join(projectRoot, pathname)), true, `参照ファイルがありません: ${reference}`);
 });
 
 const externalSources = Array.from(html.matchAll(/\ssrc="(https?:[^"]+)"/gi), (match) => match[1]);
