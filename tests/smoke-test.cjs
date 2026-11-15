@@ -13,8 +13,8 @@ const projectRoot = path.join(__dirname, "..");
 const html = fs.readFileSync(path.join(projectRoot, "index.html"), "utf8");
 
 assert.ok(engine, "抽選処理を読み込めませんでした。");
-assert.equal(cards.length, 22, "カードは22枚必要です。");
-assert.equal(new Set(cards.map((card) => card.id)).size, 22, "カードIDが重複しています。");
+assert.equal(cards.length, 26, "大アルカナ22枚とエース4枚が必要です。");
+assert.equal(new Set(cards.map((card) => card.id)).size, cards.length, "カードIDが重複しています。");
 
 const htmlIds = Array.from(html.matchAll(/\sid="([^"]+)"/g), (match) => match[1]);
 assert.equal(new Set(htmlIds).size, htmlIds.length, "HTML内のidが重複しています。");
@@ -110,7 +110,7 @@ cards.filter((card) => card.image).forEach((card) => {
   );
 });
 
-assert.equal(cards.filter((card) => card.image).length, 22, "正式画像が設定されていないカードがあります。");
+assert.equal(cards.filter((card) => card.image).length, cards.length, "正式画像が設定されていないカードがあります。");
 assert.equal(
   fs.existsSync(path.join(projectRoot, "assets", "cards", "card-back.webp")),
   true,
@@ -118,6 +118,30 @@ assert.equal(
 );
 
 assert.throws(() => engine.drawCards(0, cards), RangeError, "0枚の抽選を拒否できていません。");
-assert.throws(() => engine.drawCards(23, cards), RangeError, "カード枚数を超える抽選を拒否できていません。");
+assert.throws(() => engine.drawCards(cards.length + 1, cards), RangeError, "カード枚数を超える抽選を拒否できていません。");
+
+assert.equal(engine.validateCards([]).valid, false, "空のデッキを拒否できていません。");
+const legacyDaily = engine.drawDailyCard("2026-09-23", globalThis.TAROT_MAJOR_CARDS);
+assert.equal(engine.parseShareCode("1.d.2026-09-23").draws[0].card.id, legacyDaily.card.id, "旧日次リンクの結果が変わっています。");
+assert.equal(engine.parseShareCode("2.d.2026-02-30.cups-ace~u"), null);
+assert.equal(engine.parseShareCode("2.d.2026-11-16.unknown~u"), null);
+assert.equal(engine.parseShareCode("2.d.2026-11-16.cups-ace~x"), null);
+for (const id of ["wands-ace", "cups-ace", "swords-ace", "pentacles-ace"]) {
+  const card = cards.find((item) => item.id === id);
+  assert.ok(card, `${id}がありません。`);
+  // シャッフルを固定し、追加したカードが実際に抽選できることを確認。
+  const arranged = [card, ...cards.filter((item) => item.id !== id)];
+  assert.equal(engine.drawCards(1, arranged, (max) => max - 1)[0].card.id, id);
+  for (const orientation of ["upright", "reversed"]) {
+    const draws = [{ card, orientation }];
+    const regularCode = engine.createShareCode({ mode: "regular", theme: "love", spread: "one", draws });
+    assert.equal(engine.parseShareCode(regularCode).draws[0].orientation, orientation);
+    const dailyCode = engine.createShareCode({ mode: "daily", dailyDateKey: "2026-11-16", draws });
+    // デッキの順序や枚数を変えても新しい日次共有リンクは同じカードを表示。
+    const restored = engine.parseShareCode(dailyCode, [card, ...cards.slice(0, 5)].reverse());
+    assert.equal(restored.draws[0].card.id, id);
+    assert.equal(restored.draws[0].orientation, orientation);
+  }
+}
 
 console.log("すべてのテストに合格しました。");

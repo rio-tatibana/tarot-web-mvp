@@ -201,7 +201,7 @@
       fragment.querySelector(".card-english").textContent = draw.card.english;
       fragment.querySelector(".orientation-badge").textContent = draw.orientationLabel;
       fragment.querySelector(".keywords").textContent = draw.meaning.keywords.join(" ・ ");
-      fragment.querySelector(".reading-title").textContent = `${draw.card.number}・${draw.card.name}・${draw.orientationLabel}`;
+      fragment.querySelector(".reading-title").textContent = `${draw.card.number === "A" ? "小アルカナ" : draw.card.number}・${draw.card.name}・${draw.orientationLabel}`;
       fragment.querySelector(".general-reading").textContent = draw.meaning.general;
 
       if (state.mode === "daily") {

@@ -61,8 +61,8 @@
       return { valid: false, errors: ["カードデータが配列ではありません。"] };
     }
 
-    if (cards.length !== 22) {
-      errors.push(`カードは22枚必要ですが、${cards.length}枚です。`);
+    if (cards.length < 3) {
+      errors.push("3枚引きにはカードが3枚以上必要です。");
     }
 
     const ids = new Set();
@@ -186,7 +186,12 @@
       if (!isValidDateKey(reading.dailyDateKey)) {
         throw new RangeError("共有する日付が正しくありません。");
       }
-      return `1.d.${reading.dailyDateKey}`;
+      const draw = reading.draws ? reading.draws[0] : drawDailyCard(reading.dailyDateKey);
+      if (!draw || !draw.card || !/^[a-z-]+$/.test(draw.card.id)
+        || !["upright", "reversed"].includes(draw.orientation)) {
+        throw new RangeError("共有するカードが正しくありません。");
+      }
+      return `2.d.${reading.dailyDateKey}.${draw.card.id}~${draw.orientation === "upright" ? "u" : "r"}`;
     }
 
     const spread = SPREADS[reading.spread];
@@ -212,12 +217,20 @@
     }
 
     const parts = code.split(".");
+    // 新しい日次リンクはカードそのものを記録し、将来枚数が増えても同じ結果を表示します。
+    if (parts.length === 4 && parts[0] === "2" && parts[1] === "d") {
+      if (!isValidDateKey(parts[2])) return null;
+      const result = parseShareCode(`1.r.love.one.${parts[3]}`, cards);
+      return result ? { mode: "daily", dailyDateKey: parts[2], draws: result.draws } : null;
+    }
     if (parts.length === 3 && parts[0] === "1" && parts[1] === "d") {
       if (!isValidDateKey(parts[2])) return null;
+      const legacyCards = (global.TAROT_MAJOR_CARDS || []).map((legacy) => cards.find((card) => card.id === legacy.id));
+      if (legacyCards.length !== 22 || legacyCards.some((card) => !card)) return null;
       return {
         mode: "daily",
         dailyDateKey: parts[2],
-        draws: [drawDailyCard(parts[2], cards)]
+        draws: [drawDailyCard(parts[2], legacyCards)]
       };
     }
 
