@@ -187,7 +187,7 @@
         throw new RangeError("共有する日付が正しくありません。");
       }
       const draw = reading.draws ? reading.draws[0] : drawDailyCard(reading.dailyDateKey);
-      if (!draw || !draw.card || !/^[a-z-]+$/.test(draw.card.id)
+      if (!draw || !draw.card || !/^[a-z0-9-]+$/.test(draw.card.id)
         || !["upright", "reversed"].includes(draw.orientation)) {
         throw new RangeError("共有するカードが正しくありません。");
       }
@@ -201,7 +201,7 @@
     }
 
     const cardCodes = reading.draws.map((draw) => {
-      if (!draw.card || !/^[a-z-]+$/.test(draw.card.id)
+      if (!draw.card || !/^[a-z0-9-]+$/.test(draw.card.id)
         || !["upright", "reversed"].includes(draw.orientation)) {
         throw new RangeError("共有するカードが正しくありません。");
       }
@@ -247,7 +247,7 @@
     const draws = [];
 
     for (const cardCode of cardCodes) {
-      const match = /^([a-z-]+)~([ur])$/.exec(cardCode);
+      const match = /^([a-z0-9-]+)~([ur])$/.exec(cardCode);
       if (!match || seen.has(match[1]) || !cardById.has(match[1])) return null;
 
       const card = cardById.get(match[1]);

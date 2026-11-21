@@ -13,7 +13,7 @@ const projectRoot = path.join(__dirname, "..");
 const html = fs.readFileSync(path.join(projectRoot, "index.html"), "utf8");
 
 assert.ok(engine, "抽選処理を読み込めませんでした。");
-assert.equal(cards.length, 26, "大アルカナ22枚とエース4枚が必要です。");
+assert.equal(cards.length, 42, "大アルカナ22枚とエース4枚、2〜5の16枚が必要です。");
 assert.equal(new Set(cards.map((card) => card.id)).size, cards.length, "カードIDが重複しています。");
 
 const htmlIds = Array.from(html.matchAll(/\sid="([^"]+)"/g), (match) => match[1]);
@@ -127,7 +127,11 @@ assert.equal(engine.parseShareCode("1.d.2026-09-23").draws[0].card.id, legacyDai
 assert.equal(engine.parseShareCode("2.d.2026-02-30.cups-ace~u"), null);
 assert.equal(engine.parseShareCode("2.d.2026-11-16.unknown~u"), null);
 assert.equal(engine.parseShareCode("2.d.2026-11-16.cups-ace~x"), null);
-for (const id of ["wands-ace", "cups-ace", "swords-ace", "pentacles-ace"]) {
+const minorIds = ["wands-ace", "cups-ace", "swords-ace", "pentacles-ace"];
+for (const suit of ["wands", "cups", "swords", "pentacles"]) {
+  for (const n of ["02", "03", "04", "05"]) minorIds.push(`${suit}-${n}`);
+}
+for (const id of minorIds) {
   const card = cards.find((item) => item.id === id);
   assert.ok(card, `${id}がありません。`);
   // シャッフルを固定し、追加したカードが実際に抽選できることを確認。
